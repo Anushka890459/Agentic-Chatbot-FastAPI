@@ -1,37 +1,37 @@
 import streamlit as st
 import requests
 
-# Page Configuration
-st.set_page_config(page_title="LangGraph Agent UI", layout="centered")
-st.title("AI Chatbot Agents")
-st.write("Create and Interact with the AI Agents!")
+st.set_page_config(page_title="LangGraph Agent UI", layout="centered", page_icon="🤖")
+st.title("🤖 AI Chatbot Agents (LangGraph)")
+st.write("Configure and interact with dynamic reasoning AI Agents in real-time!")
 
-# 1. System Prompt Input
-system_prompt = st.text_area("Define your AI Agent:", height=70, placeholder="Type your system prompt here...")
+system_prompt = st.text_area(
+    "Define your AI Agent's Persona:", 
+    height=80, 
+    value="You are a helpful and precise AI assistant.",
+    placeholder="Type your system prompt here..."
+)
 
-# 2. Model Selection Logic
 MODEL_NAMES_GROQ = ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"]
-Model_NAMES_OPENAI = ["gpt-4o-mini"]
+MODEL_NAMES_OPENAI = ["gpt-4o-mini"]
 
-provider = st.radio("Select Provider:", ["Groq", "OpenAI"])
+provider = st.radio("Select Infrastructure Provider:", ["Groq", "OpenAI"])
 
 if provider == "Groq":
-    selected_model = st.selectbox("Select Groq Model:", MODEL_NAMES_GROQ)
+    selected_model = st.selectbox("Select Target Groq Model:", MODEL_NAMES_GROQ)
 else:
-    selected_model = st.selectbox("Select OpenAI Model:", Model_NAMES_OPENAI)
+    selected_model = st.selectbox("Select Target OpenAI Model:", MODEL_NAMES_OPENAI)
 
-allow_web_search = st.checkbox("Allow Web Search")
+allow_web_search = st.checkbox("Allow Web Search (Incorporate live data via Tavily API)")
 
-# 3. User Query Input
-user_query = st.text_area("Enter your query:", height=150, placeholder="Ask Anything")
+st.markdown("---")
 
-# Backend URL
 API_URL = "http://127.0.0.1:9999/chat"
 
-# 4. Button Logic (Sara processing iske andar hoga)
-if st.button("Ask Agent:"):
+user_query = st.text_area("Enter your query:", height=100, placeholder="Ask anything to invoke the agent loop...")
+
+if st.button("Ask Agent", type="primary"):
     if user_query.strip():
-        # Payload taiyar karna
         payload = {
             "model_name": selected_model,
             "model_provider": provider,
@@ -40,25 +40,23 @@ if st.button("Ask Agent:"):
             "allow_search": allow_web_search
         }
         
-        try:
-            # API ko request bhejna
-            response = requests.post(API_URL, json=payload)
-            
-            # Response check karna (Indentation yahan dhyan se dekhiye)
-            if response.status_code == 200:
-                response_data = response.json()
+        with st.spinner("Agent is analyzing prompt, executing tools, and formulating feedback..."):
+            try:
+                response = requests.post(API_URL, json=payload)
                 
-                if isinstance(response_data, dict) and "error" in response_data:
-                    st.error(response_data["error"])
+                if response.status_code == 200:
+                    response_data = response.json()
+                    
+                    if isinstance(response_data, dict) and "error" in response_data:
+                        st.error(response_data["error"])
+                    else:
+                        st.subheader("🤖 Agent Evaluation Response")
+                        final_result = response_data.get("response", "No valid payload response block captured.")
+                        st.markdown(final_result)
                 else:
-                    st.subheader("Agent Response")
-                    # Backend se 'response' key nikalna
-                    final_result = response_data.get("response", "No response key found")
-                    st.markdown(f"**Final Response:** {final_result}")
-            else:
-                st.error(f"Backend Error: Status code {response.status_code}")
-                
-        except Exception as e:
-            st.error(f"Could not connect to backend: {e}")
+                    st.error(f"Backend Server Failure: Returned status code {response.status_code}")
+                    
+            except Exception as e:
+                st.error(f"Network Connection Failed: {e}. Please ensure backend.py is active on port 9999.")
     else:
-        st.warning("Please enter a query first!")
+        st.warning("Please input a logical query instruction before executing!")
