@@ -45,12 +45,12 @@ marshmallow==3.26.2
 multidict==6.7.0
 mypy_extensions==1.1.0
 narwhals==2.15.0
-numpy==2.4.1
+numpy>=1.23,<2.0
 openai==2.15.0
 orjson==3.11.5
 ormsgpack==1.12.1
 packaging==25.0
-pandas==2.3.3
+pandas>=2.0,<2.3
 pillow==12.1.0
 propcache==0.4.1
 protobuf==6.33.3
